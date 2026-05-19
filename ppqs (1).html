@@ -1,0 +1,1204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MedQueue — Patient Priority Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --navy: #0b1f3a;
+        --navy-mid: #13304f;
+        --navy-light: #1a4068;
+        --teal: #00a8a8;
+        --teal-dim: #007c7c;
+        --teal-soft: rgba(0, 168, 168, 0.12);
+        --white: #ffffff;
+        --off-white: #f4f7fb;
+        --slate: #8fa3bb;
+        --slate-dim: #c6d4e3;
+
+        --critical: #ff4c4c;
+        --urgent: #ff8c1a;
+        --moderate: #f5c518;
+        --minor: #36c97b;
+        --stable: #4baee8;
+
+        --critical-bg: rgba(255, 76, 76, 0.12);
+        --urgent-bg: rgba(255, 140, 26, 0.12);
+        --moderate-bg: rgba(245, 197, 24, 0.12);
+        --minor-bg: rgba(54, 201, 123, 0.12);
+        --stable-bg: rgba(75, 174, 232, 0.12);
+
+        --radius: 10px;
+        --radius-sm: 6px;
+        --shadow: 0 4px 24px rgba(0, 0, 0, 0.22);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "DM Sans", sans-serif;
+        background: var(--navy);
+        color: var(--white);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* ─── Background texture ─── */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(
+            ellipse 80% 60% at 20% 10%,
+            rgba(0, 168, 168, 0.08) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse 60% 80% at 80% 80%,
+            rgba(0, 100, 160, 0.1) 0%,
+            transparent 60%
+          );
+        pointer-events: none;
+      }
+
+      /* ─── Header ─── */
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 36px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        backdrop-filter: blur(8px);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(11, 31, 58, 0.82);
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .logo-icon {
+        width: 38px;
+        height: 38px;
+        background: var(--teal);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .logo-icon svg {
+        width: 22px;
+        height: 22px;
+        fill: var(--navy);
+      }
+      .logo-text {
+        font-family: "Playfair Display", serif;
+        font-size: 22px;
+        letter-spacing: 0.5px;
+      }
+      .logo-sub {
+        font-size: 11px;
+        font-weight: 300;
+        color: var(--slate);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-top: 1px;
+      }
+
+      .header-meta {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+      }
+      .live-dot {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12px;
+        color: var(--slate);
+        letter-spacing: 0.5px;
+      }
+      .live-dot::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--minor);
+        box-shadow: 0 0 0 0 rgba(54, 201, 123, 0.5);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(54, 201, 123, 0.5);
+        }
+        70% {
+          box-shadow: 0 0 0 8px rgba(54, 201, 123, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(54, 201, 123, 0);
+        }
+      }
+      .clock {
+        font-family: "DM Mono", monospace;
+        font-size: 13px;
+        color: var(--slate);
+      }
+
+      /* ─── Main layout ─── */
+      main {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 32px 24px 60px;
+      }
+
+      /* ─── Stat bar ─── */
+      .stat-bar {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+      .stat-card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .stat-card .label {
+        font-size: 10px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--slate);
+      }
+      .stat-card .value {
+        font-family: "DM Mono", monospace;
+        font-size: 26px;
+        font-weight: 500;
+        line-height: 1;
+      }
+      .stat-card.c1 .value {
+        color: var(--critical);
+      }
+      .stat-card.c2 .value {
+        color: var(--urgent);
+      }
+      .stat-card.c3 .value {
+        color: var(--moderate);
+      }
+      .stat-card.c4 .value {
+        color: var(--minor);
+      }
+      .stat-card.c5 .value {
+        color: var(--stable);
+      }
+
+      /* ─── Nav tabs ─── */
+      .nav-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 24px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: var(--radius);
+        padding: 4px;
+        width: fit-content;
+      }
+      .nav-tab {
+        padding: 9px 22px;
+        border: none;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: var(--slate);
+        font-family: "DM Sans", sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.18s ease;
+        letter-spacing: 0.3px;
+      }
+      .nav-tab:hover {
+        color: var(--white);
+      }
+      .nav-tab.active {
+        background: var(--teal);
+        color: var(--navy);
+      }
+
+      /* ─── Panel ─── */
+      .panel {
+        display: none;
+      }
+      .panel.active {
+        display: block;
+      }
+
+      /* ─── Add patient form ─── */
+      .form-card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: var(--radius);
+        padding: 22px 24px;
+        margin-bottom: 20px;
+      }
+      .form-card-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+      .form-card-header h2 {
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--slate);
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto auto;
+        gap: 12px;
+        align-items: end;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .field label {
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: var(--slate);
+      }
+      .field input,
+      .field select {
+        height: 42px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-sm);
+        padding: 0 14px;
+        color: var(--white);
+        font-family: "DM Sans", sans-serif;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.15s;
+      }
+      .field input::placeholder {
+        color: rgba(255, 255, 255, 0.25);
+      }
+      .field input:focus,
+      .field select:focus {
+        border-color: var(--teal);
+        background: rgba(0, 168, 168, 0.07);
+      }
+      .field select option {
+        background: var(--navy-mid);
+        color: var(--white);
+      }
+
+      .btn {
+        height: 42px;
+        padding: 0 22px;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-family: "DM Sans", sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+        letter-spacing: 0.3px;
+      }
+      .btn-add {
+        background: var(--teal);
+        color: var(--navy);
+      }
+      .btn-add:hover {
+        background: #00c4c4;
+        transform: translateY(-1px);
+      }
+      .btn-treat {
+        background: rgba(54, 201, 123, 0.15);
+        border: 1px solid rgba(54, 201, 123, 0.35);
+        color: var(--minor);
+      }
+      .btn-treat:hover:not(:disabled) {
+        background: rgba(54, 201, 123, 0.25);
+        transform: translateY(-1px);
+      }
+      .btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+        transform: none !important;
+      }
+
+      /* ─── Queue section ─── */
+      .queue-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .queue-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .queue-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--slate);
+      }
+      .queue-count {
+        background: var(--teal);
+        color: var(--navy);
+        font-family: "DM Mono", monospace;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 20px;
+      }
+      .queue-list {
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      /* ─── Patient card ─── */
+      .patient-card {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        border-radius: var(--radius-sm);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        background: rgba(255, 255, 255, 0.035);
+        animation: slideIn 0.22s ease;
+        transition: background 0.15s;
+      }
+      .patient-card:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-6px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .patient-card.first-in-queue {
+        border-color: rgba(0, 168, 168, 0.35);
+        background: rgba(0, 168, 168, 0.06);
+      }
+
+      .priority-badge {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "DM Mono", monospace;
+        font-size: 14px;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+      .p1 {
+        background: var(--critical-bg);
+        color: var(--critical);
+        border: 1.5px solid rgba(255, 76, 76, 0.3);
+      }
+      .p2 {
+        background: var(--urgent-bg);
+        color: var(--urgent);
+        border: 1.5px solid rgba(255, 140, 26, 0.3);
+      }
+      .p3 {
+        background: var(--moderate-bg);
+        color: var(--moderate);
+        border: 1.5px solid rgba(245, 197, 24, 0.3);
+      }
+      .p4 {
+        background: var(--minor-bg);
+        color: var(--minor);
+        border: 1.5px solid rgba(54, 201, 123, 0.3);
+      }
+      .p5 {
+        background: var(--stable-bg);
+        color: var(--stable);
+        border: 1.5px solid rgba(75, 174, 232, 0.3);
+      }
+
+      .patient-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .patient-name {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--white);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .patient-cond {
+        font-size: 12px;
+        color: var(--slate);
+        margin-top: 2px;
+      }
+      .patient-time {
+        font-family: "DM Mono", monospace;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.22);
+        white-space: nowrap;
+      }
+      .priority-tag {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 20px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .tag-1 {
+        background: var(--critical-bg);
+        color: var(--critical);
+      }
+      .tag-2 {
+        background: var(--urgent-bg);
+        color: var(--urgent);
+      }
+      .tag-3 {
+        background: var(--moderate-bg);
+        color: var(--moderate);
+      }
+      .tag-4 {
+        background: var(--minor-bg);
+        color: var(--minor);
+      }
+      .tag-5 {
+        background: var(--stable-bg);
+        color: var(--stable);
+      }
+
+      .next-badge {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--teal);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        border: 1px solid rgba(0, 168, 168, 0.3);
+        border-radius: 4px;
+        padding: 2px 6px;
+        white-space: nowrap;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--slate);
+      }
+      .empty-state svg {
+        width: 32px;
+        height: 32px;
+        opacity: 0.3;
+        margin-bottom: 10px;
+      }
+      .empty-state p {
+        font-size: 13px;
+        opacity: 0.7;
+      }
+
+      /* ─── How it works tab ─── */
+      .how-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .how-card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: var(--radius);
+        padding: 22px 24px;
+      }
+      .how-card h3 {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--teal);
+        margin-bottom: 16px;
+      }
+      .step {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        margin-bottom: 12px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--slate-dim);
+      }
+      .step:last-child {
+        margin-bottom: 0;
+      }
+      .step-num {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: rgba(0, 168, 168, 0.15);
+        color: var(--teal);
+        font-family: "DM Mono", monospace;
+        font-size: 11px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      code {
+        font-family: "DM Mono", monospace;
+        font-size: 11px;
+        background: rgba(0, 168, 168, 0.12);
+        color: var(--teal);
+        padding: 1px 5px;
+        border-radius: 3px;
+      }
+      .compare-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin-top: 8px;
+      }
+      .compare-table th {
+        text-align: left;
+        padding: 8px 12px;
+        color: var(--slate);
+        font-weight: 500;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      }
+      .compare-table td {
+        padding: 9px 12px;
+        color: var(--slate-dim);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      }
+      .compare-table td:first-child {
+        color: var(--white);
+        font-weight: 500;
+      }
+      .val-good {
+        color: var(--minor) !important;
+      }
+
+      /* ─── Toast notification ─── */
+      #toast {
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        background: var(--navy-mid);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-left: 3px solid var(--teal);
+        border-radius: var(--radius-sm);
+        padding: 12px 18px;
+        font-size: 13px;
+        box-shadow: var(--shadow);
+        transform: translateY(12px);
+        opacity: 0;
+        transition: all 0.25s ease;
+        pointer-events: none;
+        z-index: 200;
+        max-width: 300px;
+      }
+      #toast.show {
+        transform: none;
+        opacity: 1;
+      }
+      #toast.warn {
+        border-left-color: var(--urgent);
+      }
+      #toast .toast-name {
+        font-weight: 600;
+        color: var(--white);
+        margin-bottom: 2px;
+      }
+      #toast .toast-sub {
+        color: var(--slate);
+        font-size: 12px;
+      }
+
+      @media (max-width: 700px) {
+        header {
+          padding: 14px 16px;
+        }
+        .logo-text {
+          font-size: 18px;
+        }
+        .stat-bar {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .form-row {
+          grid-template-columns: 1fr 1fr;
+        }
+        .how-grid {
+          grid-template-columns: 1fr;
+        }
+        main {
+          padding: 20px 14px 40px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+            />
+            <rect x="10" y="7" width="4" height="2" />
+            <rect x="10" y="11" width="4" height="6" />
+            <rect x="7" y="11" width="2" height="2" />
+            <rect x="15" y="11" width="2" height="2" />
+          </svg>
+        </div>
+        <div>
+          <div class="logo-text">MedQueue</div>
+          <div class="logo-sub">Emergency Triage System</div>
+        </div>
+      </div>
+      <div class="header-meta">
+        <div class="live-dot">LIVE</div>
+        <div class="clock" id="clock">--:--:--</div>
+      </div>
+    </header>
+
+    <main>
+      <!-- Stat bar -->
+      <div class="stat-bar">
+        <div class="stat-card c1">
+          <div class="label">Critical</div>
+          <div class="value" id="stat-1">0</div>
+        </div>
+        <div class="stat-card c2">
+          <div class="label">Urgent</div>
+          <div class="value" id="stat-2">0</div>
+        </div>
+        <div class="stat-card c3">
+          <div class="label">Moderate</div>
+          <div class="value" id="stat-3">0</div>
+        </div>
+        <div class="stat-card c4">
+          <div class="label">Minor</div>
+          <div class="value" id="stat-4">0</div>
+        </div>
+        <div class="stat-card c5">
+          <div class="label">Stable</div>
+          <div class="value" id="stat-5">0</div>
+        </div>
+      </div>
+
+      <!-- Nav -->
+      <div class="nav-tabs">
+        <button class="nav-tab active" onclick="show('heap')">
+          Min-Heap Queue
+        </button>
+        <button class="nav-tab" onclick="show('pq')">Sorted Array Queue</button>
+        <button class="nav-tab" onclick="show('how')">Algorithm Details</button>
+      </div>
+
+      <!-- MIN-HEAP panel -->
+      <div class="panel active" id="heap">
+        <div class="form-card">
+          <div class="form-card-header">
+            <h2>Register New Patient</h2>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>Patient Name</label>
+              <input id="h-name" placeholder="Full name" />
+            </div>
+            <div class="field">
+              <label>Presenting Condition</label>
+              <input id="h-cond" placeholder="e.g. Acute chest pain" />
+            </div>
+            <div class="field">
+              <label>Triage Level</label>
+              <select id="h-pri">
+                <option value="1">P1 — Critical</option>
+                <option value="2">P2 — Urgent</option>
+                <option value="3" selected>P3 — Moderate</option>
+                <option value="4">P4 — Minor</option>
+                <option value="5">P5 — Stable</option>
+              </select>
+            </div>
+            <button class="btn btn-add" onclick="hAdd()">
+              + Admit Patient
+            </button>
+          </div>
+        </div>
+
+        <div class="queue-card">
+          <div class="queue-header">
+            <div class="queue-title">
+              Waiting Queue
+              <span class="queue-count" id="h-count">0</span>
+            </div>
+            <button
+              class="btn btn-treat"
+              id="h-treat"
+              onclick="hTreat()"
+              disabled
+            >
+              ✓ Treat Next Patient
+            </button>
+          </div>
+          <div class="queue-list" id="h-queue">
+            <div class="empty-state">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              <p>No patients in the queue</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SORTED ARRAY panel -->
+      <div class="panel" id="pq">
+        <div class="form-card">
+          <div class="form-card-header">
+            <h2>Register New Patient</h2>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>Patient Name</label>
+              <input id="p-name" placeholder="Full name" />
+            </div>
+            <div class="field">
+              <label>Presenting Condition</label>
+              <input id="p-cond" placeholder="e.g. Fracture" />
+            </div>
+            <div class="field">
+              <label>Triage Level</label>
+              <select id="p-pri">
+                <option value="1">P1 — Critical</option>
+                <option value="2">P2 — Urgent</option>
+                <option value="3" selected>P3 — Moderate</option>
+                <option value="4">P4 — Minor</option>
+                <option value="5">P5 — Stable</option>
+              </select>
+            </div>
+            <button class="btn btn-add" onclick="pAdd()">
+              + Admit Patient
+            </button>
+          </div>
+        </div>
+
+        <div class="queue-card">
+          <div class="queue-header">
+            <div class="queue-title">
+              Waiting Queue
+              <span class="queue-count" id="p-count">0</span>
+            </div>
+            <button
+              class="btn btn-treat"
+              id="p-treat"
+              onclick="pTreat()"
+              disabled
+            >
+              ✓ Treat Next Patient
+            </button>
+          </div>
+          <div class="queue-list" id="p-queue">
+            <div class="empty-state">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              <p>No patients in the queue</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HOW IT WORKS panel -->
+      <div class="panel" id="how">
+        <div class="how-grid">
+          <div class="how-card">
+            <h3>Min-Heap — Insert (Bubble Up)</h3>
+            <div class="step">
+              <div class="step-num">1</div>
+              <span
+                >New patient is appended to the end of the internal array</span
+              >
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <span>Compare with parent at <code>floor((i−1)/2)</code></span>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <span>If more critical (lower P-number), swap with parent</span>
+            </div>
+            <div class="step">
+              <div class="step-num">4</div>
+              <span>Repeat upward until heap property is restored</span>
+            </div>
+            <div class="step">
+              <div class="step-num">5</div>
+              <span>Most critical patient always sits at index 0 (root)</span>
+            </div>
+          </div>
+
+          <div class="how-card">
+            <h3>Min-Heap — Treat (Sink Down)</h3>
+            <div class="step">
+              <div class="step-num">1</div>
+              <span>Remove the root (index 0) — that is the next patient</span>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <span>Move last array element to index 0</span>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <span
+                >Compare with children: left <code>2i+1</code>, right
+                <code>2i+2</code></span
+              >
+            </div>
+            <div class="step">
+              <div class="step-num">4</div>
+              <span
+                >Swap with the more critical child if needed (sink-down)</span
+              >
+            </div>
+            <div class="step">
+              <div class="step-num">5</div>
+              <span>Repeat until the heap order is fully restored</span>
+            </div>
+          </div>
+
+          <div class="how-card">
+            <h3>Sorted Array — How It Works</h3>
+            <div class="step">
+              <div class="step-num">1</div>
+              <span>New patient is appended to the end of the array</span>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <span>Entire array is re-sorted by priority (P1 first)</span>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <span>Ties in priority are broken by arrival order (FIFO)</span>
+            </div>
+            <div class="step">
+              <div class="step-num">4</div>
+              <span
+                >To treat: remove first element — always the most critical</span
+              >
+            </div>
+          </div>
+
+          <div class="how-card">
+            <h3>Performance Comparison</h3>
+            <table class="compare-table">
+              <thead>
+                <tr>
+                  <th>Operation</th>
+                  <th>Min-Heap</th>
+                  <th>Sorted Array</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Insert patient</td>
+                  <td class="val-good"><code>O(log n)</code></td>
+                  <td><code>O(n)</code></td>
+                </tr>
+                <tr>
+                  <td>Treat next</td>
+                  <td><code>O(log n)</code></td>
+                  <td class="val-good"><code>O(1)</code></td>
+                </tr>
+                <tr>
+                  <td>Best for</td>
+                  <td>High patient throughput</td>
+                  <td>Frequent full-list reads</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Toast -->
+    <div id="toast">
+      <div class="toast-name" id="toast-name"></div>
+      <div class="toast-sub" id="toast-sub"></div>
+    </div>
+
+    <script>
+      /* ─── Clock ─── */
+      function tick() {
+        const now = new Date();
+        document.getElementById("clock").textContent = now.toLocaleTimeString(
+          "en-IN",
+          { hour12: false },
+        );
+      }
+      tick();
+      setInterval(tick, 1000);
+
+      /* ─── Data ─── */
+      let hData = [],
+        pData = [],
+        hId = 0,
+        pId = 0;
+      const priLabel = [
+        "",
+        "Critical",
+        "Urgent",
+        "Moderate",
+        "Minor",
+        "Stable",
+      ];
+
+      /* ─── Tab nav ─── */
+      function show(tab) {
+        ["heap", "pq", "how"].forEach((id) => {
+          document.getElementById(id).classList.toggle("active", id === tab);
+        });
+        document.querySelectorAll(".nav-tab").forEach((el, i) => {
+          el.classList.toggle("active", ["heap", "pq", "how"][i] === tab);
+        });
+      }
+
+      /* ─── Stats bar ─── */
+      function updateStats() {
+        const all = [...hData, ...pData];
+        for (let i = 1; i <= 5; i++) {
+          document.getElementById("stat-" + i).textContent = all.filter(
+            (p) => p.pri === i,
+          ).length;
+        }
+      }
+
+      /* ─── Time formatting ─── */
+      function fmtTime(ms) {
+        const d = new Date(ms);
+        return d.toLocaleTimeString("en-IN", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        });
+      }
+
+      /* ─── Patient card HTML ─── */
+      function cardHTML(p, isFirst) {
+        return `<div class="patient-card ${isFirst ? "first-in-queue" : ""}">
+      <div class="priority-badge p${p.pri}">${p.pri}</div>
+      <div class="patient-info">
+        <div class="patient-name">${p.name}</div>
+        <div class="patient-cond">${p.cond}</div>
+      </div>
+      <div class="patient-time">${fmtTime(p.ts)}</div>
+      <div class="priority-tag tag-${p.pri}">${priLabel[p.pri]}</div>
+      ${isFirst ? '<div class="next-badge">NEXT</div>' : ""}
+    </div>`;
+      }
+
+      function emptyHTML() {
+        return `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      <p>No patients in the queue</p>
+    </div>`;
+      }
+
+      function render(listId, data, countId, treatId) {
+        const sorted = [...data].sort((a, b) => a.pri - b.pri || a.id - b.id);
+        document.getElementById(listId).innerHTML = sorted.length
+          ? sorted.map((p, i) => cardHTML(p, i === 0)).join("")
+          : emptyHTML();
+        document.getElementById(countId).textContent = data.length;
+        document.getElementById(treatId).disabled = data.length === 0;
+        updateStats();
+      }
+
+      /* ─── Toast ─── */
+      let toastTimer;
+      function showToast(name, sub, warn = false) {
+        const t = document.getElementById("toast");
+        document.getElementById("toast-name").textContent = name;
+        document.getElementById("toast-sub").textContent = sub;
+        t.className = warn ? "warn show" : "show";
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          t.className = warn ? "warn" : "";
+        }, 3200);
+      }
+
+      /* ─── MIN-HEAP logic ─── */
+      function bubbleUp(arr, i) {
+        while (i > 0) {
+          const parent = Math.floor((i - 1) / 2);
+          if (arr[parent].pri <= arr[i].pri) break;
+          [arr[parent], arr[i]] = [arr[i], arr[parent]];
+          i = parent;
+        }
+      }
+
+      function sinkDown(arr, i) {
+        const n = arr.length;
+        while (true) {
+          let s = i,
+            l = 2 * i + 1,
+            r = 2 * i + 2;
+          if (l < n && arr[l].pri < arr[s].pri) s = l;
+          if (r < n && arr[r].pri < arr[s].pri) s = r;
+          if (s === i) break;
+          [arr[s], arr[i]] = [arr[i], arr[s]];
+          i = s;
+        }
+      }
+
+      function hAdd() {
+        const name =
+          document.getElementById("h-name").value.trim() ||
+          "Patient " + (hId + 1);
+        const cond =
+          document.getElementById("h-cond").value.trim() || "Not specified";
+        const pri = +document.getElementById("h-pri").value;
+        const p = { id: ++hId, name, cond, pri, ts: Date.now() };
+        hData.push(p);
+        bubbleUp(hData, hData.length - 1);
+        document.getElementById("h-name").value = "";
+        document.getElementById("h-cond").value = "";
+        render("h-queue", hData, "h-count", "h-treat");
+        showToast(
+          name + " admitted",
+          "Triage level: " + priLabel[pri],
+          pri === 1,
+        );
+      }
+
+      function hTreat() {
+        if (!hData.length) return;
+        const treated = hData[0];
+        const last = hData.pop();
+        if (hData.length) {
+          hData[0] = last;
+          sinkDown(hData, 0);
+        }
+        render("h-queue", hData, "h-count", "h-treat");
+        showToast(
+          treated.name + " is being treated",
+          priLabel[treated.pri] + " patient cleared",
+        );
+      }
+
+      /* ─── SORTED ARRAY logic ─── */
+      function pAdd() {
+        const name =
+          document.getElementById("p-name").value.trim() ||
+          "Patient " + (pId + 1);
+        const cond =
+          document.getElementById("p-cond").value.trim() || "Not specified";
+        const pri = +document.getElementById("p-pri").value;
+        pData.push({ id: ++pId, name, cond, pri, ts: Date.now() });
+        pData.sort((a, b) => a.pri - b.pri || a.id - b.id);
+        document.getElementById("p-name").value = "";
+        document.getElementById("p-cond").value = "";
+        render("p-queue", pData, "p-count", "p-treat");
+        showToast(
+          name + " admitted",
+          "Triage level: " + priLabel[pri],
+          pri === 1,
+        );
+      }
+
+      function pTreat() {
+        if (!pData.length) return;
+        const treated = pData.shift();
+        render("p-queue", pData, "p-count", "p-treat");
+        showToast(
+          treated.name + " is being treated",
+          priLabel[treated.pri] + " patient cleared",
+        );
+      }
+
+      /* ─── Enter key support ─── */
+      ["h-name", "h-cond", "h-pri"].forEach((id) =>
+        document.getElementById(id).addEventListener("keydown", (e) => {
+          if (e.key === "Enter") hAdd();
+        }),
+      );
+      ["p-name", "p-cond", "p-pri"].forEach((id) =>
+        document.getElementById(id).addEventListener("keydown", (e) => {
+          if (e.key === "Enter") pAdd();
+        }),
+      );
+    </script>
+  </body>
+</html>
