@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MedQueue — Patient Priority Management</title>
+    <title>MedQueue — Emergency Triage System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -20,7 +20,6 @@
         --teal-dim: #007c7c;
         --teal-soft: rgba(0, 168, 168, 0.12);
         --white: #ffffff;
-        --off-white: #f4f7fb;
         --slate: #8fa3bb;
         --slate-dim: #c6d4e3;
 
@@ -57,7 +56,6 @@
         overflow-x: hidden;
       }
 
-      /* ─── Background texture ─── */
       body::before {
         content: "";
         position: fixed;
@@ -76,28 +74,154 @@
         pointer-events: none;
       }
 
-      /* ─── Header ─── */
+      /* ── ROLE SELECTOR (landing) ── */
+      #role-selector {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 48px;
+        padding: 40px 24px;
+      }
+      .role-logo {
+        text-align: center;
+      }
+      .role-logo-icon {
+        width: 56px;
+        height: 56px;
+        background: var(--teal);
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+      }
+      .role-logo-icon svg {
+        width: 32px;
+        height: 32px;
+        fill: var(--navy);
+      }
+      .role-logo h1 {
+        font-family: "Playfair Display", serif;
+        font-size: 32px;
+      }
+      .role-logo p {
+        color: var(--slate);
+        font-size: 12px;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        margin-top: 4px;
+      }
+
+      .role-cards {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .role-card {
+        width: 240px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: var(--radius);
+        padding: 28px 24px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+      }
+      .role-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--teal);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 32px rgba(0, 168, 168, 0.15);
+      }
+      .role-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+      }
+      .role-icon.receptionist {
+        background: rgba(0, 168, 168, 0.15);
+      }
+      .role-icon.queue-mgr {
+        background: rgba(255, 140, 26, 0.15);
+      }
+      .role-icon.doctor {
+        background: rgba(54, 201, 123, 0.15);
+      }
+
+      .role-card h3 {
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .role-card p {
+        font-size: 12px;
+        color: var(--slate);
+        line-height: 1.6;
+      }
+      .role-badge {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        padding: 3px 10px;
+        border-radius: 20px;
+        margin-top: 4px;
+      }
+      .role-badge.enc {
+        background: var(--teal-soft);
+        color: var(--teal);
+      }
+      .role-badge.view {
+        background: var(--urgent-bg);
+        color: var(--urgent);
+      }
+      .role-badge.dec {
+        background: var(--minor-bg);
+        color: var(--minor);
+      }
+
+      /* ── PAGES (hidden until role chosen) ── */
+      .page {
+        display: none;
+        min-height: 100vh;
+        flex-direction: column;
+      }
+      .page.active {
+        display: flex;
+      }
+
+      /* ── SHARED HEADER ── */
       header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 20px 36px;
+        padding: 18px 36px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.07);
         backdrop-filter: blur(8px);
         position: sticky;
         top: 0;
         z-index: 100;
-        background: rgba(11, 31, 58, 0.82);
+        background: rgba(11, 31, 58, 0.88);
+        flex-shrink: 0;
       }
-
       .logo {
         display: flex;
         align-items: center;
         gap: 12px;
       }
       .logo-icon {
-        width: 38px;
-        height: 38px;
+        width: 36px;
+        height: 36px;
         background: var(--teal);
         border-radius: 8px;
         display: flex;
@@ -105,29 +229,65 @@
         justify-content: center;
       }
       .logo-icon svg {
-        width: 22px;
-        height: 22px;
+        width: 20px;
+        height: 20px;
         fill: var(--navy);
       }
       .logo-text {
         font-family: "Playfair Display", serif;
-        font-size: 22px;
+        font-size: 20px;
         letter-spacing: 0.5px;
       }
       .logo-sub {
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 300;
         color: var(--slate);
         letter-spacing: 2px;
         text-transform: uppercase;
-        margin-top: 1px;
       }
 
-      .header-meta {
+      .header-right {
         display: flex;
         align-items: center;
-        gap: 28px;
+        gap: 20px;
       }
+      .role-pill {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        padding: 4px 12px;
+        border-radius: 20px;
+      }
+      .role-pill.r-rec {
+        background: var(--teal-soft);
+        color: var(--teal);
+      }
+      .role-pill.r-que {
+        background: var(--urgent-bg);
+        color: var(--urgent);
+      }
+      .role-pill.r-doc {
+        background: var(--minor-bg);
+        color: var(--minor);
+      }
+
+      .btn-back {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: var(--slate);
+        font-family: "DM Sans", sans-serif;
+        font-size: 12px;
+        padding: 6px 14px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .btn-back:hover {
+        border-color: rgba(255, 255, 255, 0.3);
+        color: var(--white);
+      }
+
       .live-dot {
         display: flex;
         align-items: center;
@@ -162,14 +322,15 @@
         color: var(--slate);
       }
 
-      /* ─── Main layout ─── */
+      /* ── MAIN CONTENT ── */
       main {
-        max-width: 1080px;
+        max-width: 1000px;
         margin: 0 auto;
         padding: 32px 24px 60px;
+        flex: 1;
       }
 
-      /* ─── Stat bar ─── */
+      /* ── STAT BAR ── */
       .stat-bar {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
@@ -214,47 +375,7 @@
         color: var(--stable);
       }
 
-      /* ─── Nav tabs ─── */
-      .nav-tabs {
-        display: flex;
-        gap: 4px;
-        margin-bottom: 24px;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.07);
-        border-radius: var(--radius);
-        padding: 4px;
-        width: fit-content;
-      }
-      .nav-tab {
-        padding: 9px 22px;
-        border: none;
-        border-radius: var(--radius-sm);
-        background: transparent;
-        color: var(--slate);
-        font-family: "DM Sans", sans-serif;
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.18s ease;
-        letter-spacing: 0.3px;
-      }
-      .nav-tab:hover {
-        color: var(--white);
-      }
-      .nav-tab.active {
-        background: var(--teal);
-        color: var(--navy);
-      }
-
-      /* ─── Panel ─── */
-      .panel {
-        display: none;
-      }
-      .panel.active {
-        display: block;
-      }
-
-      /* ─── Add patient form ─── */
+      /* ── FORM CARD ── */
       .form-card {
         background: rgba(255, 255, 255, 0.04);
         border: 1px solid rgba(255, 255, 255, 0.08);
@@ -274,6 +395,16 @@
         text-transform: uppercase;
         letter-spacing: 1.5px;
         color: var(--slate);
+      }
+      .enc-badge {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 20px;
+        background: var(--teal-soft);
+        color: var(--teal);
       }
       .form-row {
         display: grid;
@@ -355,7 +486,7 @@
         transform: none !important;
       }
 
-      /* ─── Queue section ─── */
+      /* ── QUEUE CARD ── */
       .queue-card {
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.07);
@@ -395,7 +526,7 @@
         gap: 8px;
       }
 
-      /* ─── Patient card ─── */
+      /* ── PATIENT CARD ── */
       .patient-card {
         display: flex;
         align-items: center;
@@ -426,14 +557,14 @@
       }
 
       .priority-badge {
-        width: 36px;
+        width: 44px;
         height: 36px;
-        border-radius: 50%;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-family: "DM Mono", monospace;
-        font-size: 14px;
+        font-size: 11px;
         font-weight: 600;
         flex-shrink: 0;
       }
@@ -480,6 +611,7 @@
         color: var(--slate);
         margin-top: 2px;
       }
+
       .patient-time {
         font-family: "DM Mono", monospace;
         font-size: 11px;
@@ -528,6 +660,7 @@
         white-space: nowrap;
       }
 
+      /* ── EMPTY STATE ── */
       .empty-state {
         text-align: center;
         padding: 40px 20px;
@@ -544,91 +677,115 @@
         opacity: 0.7;
       }
 
-      /* ─── How it works tab ─── */
-      .how-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
+      /* ── DOCTOR PAGE ── */
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
       }
-      .how-card {
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.07);
-        border-radius: var(--radius);
-        padding: 22px 24px;
-      }
-      .how-card h3 {
-        font-size: 12px;
+      .section-title {
+        font-size: 13px;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 1.5px;
-        color: var(--teal);
-        margin-bottom: 16px;
+        color: var(--slate);
       }
-      .step {
-        display: flex;
-        gap: 12px;
-        align-items: flex-start;
-        margin-bottom: 12px;
-        font-size: 13px;
-        line-height: 1.6;
-        color: var(--slate-dim);
-      }
-      .step:last-child {
-        margin-bottom: 0;
-      }
-      .step-num {
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        background: rgba(0, 168, 168, 0.15);
-        color: var(--teal);
+      .treated-count {
+        background: var(--minor-bg);
+        color: var(--minor);
+        border: 1px solid rgba(54, 201, 123, 0.2);
         font-family: "DM Mono", monospace;
         font-size: 11px;
         font-weight: 600;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        margin-top: 1px;
-      }
-      code {
-        font-family: "DM Mono", monospace;
-        font-size: 11px;
-        background: rgba(0, 168, 168, 0.12);
-        color: var(--teal);
-        padding: 1px 5px;
-        border-radius: 3px;
-      }
-      .compare-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 13px;
-        margin-top: 8px;
-      }
-      .compare-table th {
-        text-align: left;
-        padding: 8px 12px;
-        color: var(--slate);
-        font-weight: 500;
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-      }
-      .compare-table td {
-        padding: 9px 12px;
-        color: var(--slate-dim);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      }
-      .compare-table td:first-child {
-        color: var(--white);
-        font-weight: 500;
-      }
-      .val-good {
-        color: var(--minor) !important;
+        padding: 2px 10px;
+        border-radius: 20px;
       }
 
-      /* ─── Toast notification ─── */
+      /* Treated patient card — decrypted, so show real info */
+      .treated-card {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 20px;
+        border-radius: var(--radius-sm);
+        border: 1px solid rgba(54, 201, 123, 0.15);
+        background: rgba(54, 201, 123, 0.04);
+        animation: slideIn 0.22s ease;
+        margin-bottom: 8px;
+      }
+      .treated-card .patient-name {
+        color: var(--white);
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .treated-card .patient-cond {
+        font-size: 13px;
+        color: var(--slate-dim);
+        margin-top: 3px;
+      }
+      .treated-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .treated-time-col {
+        text-align: right;
+      }
+      .treated-at {
+        font-size: 10px;
+        color: var(--slate);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .treated-time-val {
+        font-family: "DM Mono", monospace;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .dec-badge {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 20px;
+        background: var(--minor-bg);
+        color: var(--minor);
+      }
+
+      /* ── LOADING SPINNER (for RSA key gen) ── */
+      #loading-overlay {
+        position: fixed;
+        inset: 0;
+        background: var(--navy);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        z-index: 9999;
+      }
+      .spinner {
+        width: 36px;
+        height: 36px;
+        border: 3px solid rgba(0, 168, 168, 0.2);
+        border-top-color: var(--teal);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      #loading-overlay p {
+        color: var(--slate);
+        font-size: 13px;
+        letter-spacing: 0.5px;
+      }
+
+      /* ── TOAST ── */
       #toast {
         position: fixed;
         bottom: 28px;
@@ -654,6 +811,9 @@
       #toast.warn {
         border-left-color: var(--urgent);
       }
+      #toast.doc {
+        border-left-color: var(--minor);
+      }
       #toast .toast-name {
         font-weight: 600;
         color: var(--white);
@@ -664,12 +824,47 @@
         font-size: 12px;
       }
 
+      /* ── INFO BOX (receptionist page) ── */
+      .info-box {
+        background: rgba(0, 168, 168, 0.06);
+        border: 1px solid rgba(0, 168, 168, 0.2);
+        border-radius: var(--radius-sm);
+        padding: 12px 16px;
+        font-size: 12px;
+        color: var(--slate);
+        line-height: 1.7;
+        margin-bottom: 20px;
+      }
+      .info-box strong {
+        color: var(--teal);
+      }
+
+      /* ── KEY INFO BOX (doctor page) ── */
+      .key-box {
+        background: rgba(54, 201, 123, 0.05);
+        border: 1px solid rgba(54, 201, 123, 0.18);
+        border-radius: var(--radius-sm);
+        padding: 12px 16px;
+        font-size: 12px;
+        color: var(--slate);
+        line-height: 1.7;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .key-box .key-icon {
+        font-size: 20px;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .key-box strong {
+        color: var(--minor);
+      }
+
       @media (max-width: 700px) {
         header {
           padding: 14px 16px;
-        }
-        .logo-text {
-          font-size: 18px;
         }
         .stat-bar {
           grid-template-columns: repeat(3, 1fr);
@@ -677,8 +872,9 @@
         .form-row {
           grid-template-columns: 1fr 1fr;
         }
-        .how-grid {
-          grid-template-columns: 1fr;
+        .role-cards {
+          flex-direction: column;
+          align-items: center;
         }
         main {
           padding: 20px 14px 40px;
@@ -687,12 +883,23 @@
     </style>
   </head>
   <body>
-    <header>
-      <div class="logo">
-        <div class="logo-icon">
+    <!-- ═══════════════════════════════════════════
+     LOADING OVERLAY (shown while RSA keys gen)
+════════════════════════════════════════════ -->
+    <div id="loading-overlay">
+      <div class="spinner"></div>
+      <p>Generating RSA-2048 key pair…</p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+     ROLE SELECTOR (landing page)
+════════════════════════════════════════════ -->
+    <div id="role-selector" style="display: none">
+      <div class="role-logo">
+        <div class="role-logo-icon">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path
-              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
             />
             <rect x="10" y="7" width="4" height="2" />
             <rect x="10" y="11" width="4" height="6" />
@@ -700,69 +907,122 @@
             <rect x="15" y="11" width="2" height="2" />
           </svg>
         </div>
-        <div>
-          <div class="logo-text">MedQueue</div>
-          <div class="logo-sub">Emergency Triage System</div>
-        </div>
-      </div>
-      <div class="header-meta">
-        <div class="live-dot">LIVE</div>
-        <div class="clock" id="clock">--:--:--</div>
-      </div>
-    </header>
-
-    <main>
-      <!-- Stat bar -->
-      <div class="stat-bar">
-        <div class="stat-card c1">
-          <div class="label">Critical</div>
-          <div class="value" id="stat-1">0</div>
-        </div>
-        <div class="stat-card c2">
-          <div class="label">Urgent</div>
-          <div class="value" id="stat-2">0</div>
-        </div>
-        <div class="stat-card c3">
-          <div class="label">Moderate</div>
-          <div class="value" id="stat-3">0</div>
-        </div>
-        <div class="stat-card c4">
-          <div class="label">Minor</div>
-          <div class="value" id="stat-4">0</div>
-        </div>
-        <div class="stat-card c5">
-          <div class="label">Stable</div>
-          <div class="value" id="stat-5">0</div>
-        </div>
+        <h1>MedQueue</h1>
+        <p>Emergency Triage System</p>
       </div>
 
-      <!-- Nav -->
-      <div class="nav-tabs">
-        <button class="nav-tab active" onclick="show('heap')">
-          Min-Heap Queue
-        </button>
-        <button class="nav-tab" onclick="show('pq')">Sorted Array Queue</button>
-        <button class="nav-tab" onclick="show('how')">Algorithm Details</button>
+      <div class="role-cards">
+        <!-- Receptionist -->
+        <div class="role-card" onclick="openPage('receptionist')">
+          <div class="role-icon receptionist">🖥️</div>
+          <h3>Data Entry</h3>
+          <p>
+            Register new patients, assign triage levels. Patient identity is
+            encrypted with the RSA public key before storage.
+          </p>
+          <span class="role-badge enc">🔒 Public Key Only</span>
+        </div>
+        <!-- Queue Manager -->
+        <div class="role-card" onclick="openPage('queue')">
+          <div class="role-icon queue-mgr">📋</div>
+          <h3>Queue Manager</h3>
+          <p>
+            Monitor the live waiting queue and dispatch the next critical
+            patient for treatment. Names remain encrypted.
+          </p>
+          <span class="role-badge view">👁 View &amp; Dispatch</span>
+        </div>
+        <!-- Doctor -->
+        <div class="role-card" onclick="openPage('doctor')">
+          <div class="role-icon doctor">🩺</div>
+          <h3>Doctor</h3>
+          <p>
+            View all treated patients with full decrypted records. Only this
+            role holds the RSA private key.
+          </p>
+          <span class="role-badge dec">🔓 Private Key</span>
+        </div>
       </div>
+    </div>
 
-      <!-- MIN-HEAP panel -->
-      <div class="panel active" id="heap">
+    <!-- ═══════════════════════════════════════════
+     PAGE 1 — RECEPTIONIST (Data Entry)
+════════════════════════════════════════════ -->
+    <div class="page" id="page-receptionist">
+      <header>
+        <div class="logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
+              />
+              <rect x="10" y="7" width="4" height="2" />
+              <rect x="10" y="11" width="4" height="6" />
+              <rect x="7" y="11" width="2" height="2" />
+              <rect x="15" y="11" width="2" height="2" />
+            </svg>
+          </div>
+          <div>
+            <div class="logo-text">MedQueue</div>
+            <div class="logo-sub">Emergency Triage System</div>
+          </div>
+        </div>
+        <div class="header-right">
+          <span class="role-pill r-rec">🖥️ Data Entry</span>
+          <div class="live-dot">LIVE</div>
+          <div class="clock" id="clock-rec">--:--:--</div>
+          <button class="btn-back" onclick="goHome()">← Switch Role</button>
+        </div>
+      </header>
+
+      <main>
+        <div class="stat-bar">
+          <div class="stat-card c1">
+            <div class="label">Critical</div>
+            <div class="value" id="rec-stat-1">0</div>
+          </div>
+          <div class="stat-card c2">
+            <div class="label">Urgent</div>
+            <div class="value" id="rec-stat-2">0</div>
+          </div>
+          <div class="stat-card c3">
+            <div class="label">Moderate</div>
+            <div class="value" id="rec-stat-3">0</div>
+          </div>
+          <div class="stat-card c4">
+            <div class="label">Minor</div>
+            <div class="value" id="rec-stat-4">0</div>
+          </div>
+          <div class="stat-card c5">
+            <div class="label">Stable</div>
+            <div class="value" id="rec-stat-5">0</div>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <strong>🔒 RSA Public Key Encryption Active</strong> — Patient name
+          and condition are encrypted with the RSA-2048 public key the moment
+          you click <em>Admit Patient</em>. The plaintext is never stored. Only
+          the Doctor's private key can recover the original data.
+        </div>
+
         <div class="form-card">
           <div class="form-card-header">
             <h2>Register New Patient</h2>
+            <span class="enc-badge">🔒 Encrypted on Admit</span>
           </div>
           <div class="form-row">
             <div class="field">
               <label>Patient Name</label>
-              <input id="h-name" placeholder="Full name" />
+              <input id="r-name" placeholder="Full name" />
             </div>
             <div class="field">
               <label>Presenting Condition</label>
-              <input id="h-cond" placeholder="e.g. Acute chest pain" />
+              <input id="r-cond" placeholder="e.g. Acute chest pain" />
             </div>
             <div class="field">
               <label>Triage Level</label>
-              <select id="h-pri">
+              <select id="r-pri">
                 <option value="1">P1 — Critical</option>
                 <option value="2">P2 — Urgent</option>
                 <option value="3" selected>P3 — Moderate</option>
@@ -770,28 +1030,110 @@
                 <option value="5">P5 — Stable</option>
               </select>
             </div>
-            <button class="btn btn-add" onclick="hAdd()">
+            <button class="btn btn-add" onclick="admitPatient()">
               + Admit Patient
             </button>
+          </div>
+        </div>
+
+        <!-- Read-only encrypted view of queue -->
+        <div class="queue-card">
+          <div class="queue-header">
+            <div class="queue-title">
+              Current Encrypted Queue
+              <span class="queue-count" id="rec-count">0</span>
+            </div>
+          </div>
+          <div class="queue-list" id="rec-queue">
+            <div class="empty-state">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              <p>No patients admitted yet</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+     PAGE 2 — QUEUE MANAGER
+════════════════════════════════════════════ -->
+    <div class="page" id="page-queue">
+      <header>
+        <div class="logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
+              />
+              <rect x="10" y="7" width="4" height="2" />
+              <rect x="10" y="11" width="4" height="6" />
+              <rect x="7" y="11" width="2" height="2" />
+              <rect x="15" y="11" width="2" height="2" />
+            </svg>
+          </div>
+          <div>
+            <div class="logo-text">MedQueue</div>
+            <div class="logo-sub">Emergency Triage System</div>
+          </div>
+        </div>
+        <div class="header-right">
+          <span class="role-pill r-que">📋 Queue Manager</span>
+          <div class="live-dot">LIVE</div>
+          <div class="clock" id="clock-que">--:--:--</div>
+          <button class="btn-back" onclick="goHome()">← Switch Role</button>
+        </div>
+      </header>
+
+      <main>
+        <div class="stat-bar">
+          <div class="stat-card c1">
+            <div class="label">Critical</div>
+            <div class="value" id="que-stat-1">0</div>
+          </div>
+          <div class="stat-card c2">
+            <div class="label">Urgent</div>
+            <div class="value" id="que-stat-2">0</div>
+          </div>
+          <div class="stat-card c3">
+            <div class="label">Moderate</div>
+            <div class="value" id="que-stat-3">0</div>
+          </div>
+          <div class="stat-card c4">
+            <div class="label">Minor</div>
+            <div class="value" id="que-stat-4">0</div>
+          </div>
+          <div class="stat-card c5">
+            <div class="label">Stable</div>
+            <div class="value" id="que-stat-5">0</div>
           </div>
         </div>
 
         <div class="queue-card">
           <div class="queue-header">
             <div class="queue-title">
-              Waiting Queue
-              <span class="queue-count" id="h-count">0</span>
+              Waiting Queue (Min-Heap)
+              <span class="queue-count" id="que-count">0</span>
             </div>
             <button
               class="btn btn-treat"
-              id="h-treat"
-              onclick="hTreat()"
+              id="que-treat"
+              onclick="treatNext()"
               disabled
             >
               ✓ Treat Next Patient
             </button>
           </div>
-          <div class="queue-list" id="h-queue">
+          <div class="queue-list" id="que-queue">
             <div class="empty-state">
               <svg
                 viewBox="0 0 24 24"
@@ -808,185 +1150,74 @@
             </div>
           </div>
         </div>
-      </div>
+      </main>
+    </div>
 
-      <!-- SORTED ARRAY panel -->
-      <div class="panel" id="pq">
-        <div class="form-card">
-          <div class="form-card-header">
-            <h2>Register New Patient</h2>
+    <!-- ═══════════════════════════════════════════
+     PAGE 3 — DOCTOR (Decrypted Records)
+════════════════════════════════════════════ -->
+    <div class="page" id="page-doctor">
+      <header>
+        <div class="logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
+              />
+              <rect x="10" y="7" width="4" height="2" />
+              <rect x="10" y="11" width="4" height="6" />
+              <rect x="7" y="11" width="2" height="2" />
+              <rect x="15" y="11" width="2" height="2" />
+            </svg>
           </div>
-          <div class="form-row">
-            <div class="field">
-              <label>Patient Name</label>
-              <input id="p-name" placeholder="Full name" />
-            </div>
-            <div class="field">
-              <label>Presenting Condition</label>
-              <input id="p-cond" placeholder="e.g. Fracture" />
-            </div>
-            <div class="field">
-              <label>Triage Level</label>
-              <select id="p-pri">
-                <option value="1">P1 — Critical</option>
-                <option value="2">P2 — Urgent</option>
-                <option value="3" selected>P3 — Moderate</option>
-                <option value="4">P4 — Minor</option>
-                <option value="5">P5 — Stable</option>
-              </select>
-            </div>
-            <button class="btn btn-add" onclick="pAdd()">
-              + Admit Patient
-            </button>
+          <div>
+            <div class="logo-text">MedQueue</div>
+            <div class="logo-sub">Emergency Triage System</div>
+          </div>
+        </div>
+        <div class="header-right">
+          <span class="role-pill r-doc">🩺 Doctor</span>
+          <div class="live-dot">LIVE</div>
+          <div class="clock" id="clock-doc">--:--:--</div>
+          <button class="btn-back" onclick="goHome()">← Switch Role</button>
+        </div>
+      </header>
+
+      <main>
+        <div class="key-box">
+          <div class="key-icon">🔑</div>
+          <div>
+            <strong>RSA Private Key Active</strong> — You hold the private key
+            for this session. All records below have been decrypted from
+            RSA-2048 ciphertext. Patient identity was never stored in plaintext
+            — each record was encrypted by the receptionist using the public key
+            and is decrypted here on demand.
           </div>
         </div>
 
-        <div class="queue-card">
-          <div class="queue-header">
-            <div class="queue-title">
-              Waiting Queue
-              <span class="queue-count" id="p-count">0</span>
-            </div>
-            <button
-              class="btn btn-treat"
-              id="p-treat"
-              onclick="pTreat()"
-              disabled
-            >
-              ✓ Treat Next Patient
-            </button>
-          </div>
-          <div class="queue-list" id="p-queue">
-            <div class="empty-state">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
-              <p>No patients in the queue</p>
-            </div>
+        <!-- Currently being treated -->
+        <div class="section-header">
+          <span class="section-title">Currently Being Treated</span>
+          <span class="treated-count" id="treating-count">0</span>
+        </div>
+        <div id="treating-list">
+          <div class="empty-state" style="padding: 20px">
+            <p>No patient being treated right now</p>
           </div>
         </div>
-      </div>
 
-      <!-- HOW IT WORKS panel -->
-      <div class="panel" id="how">
-        <div class="how-grid">
-          <div class="how-card">
-            <h3>Min-Heap — Insert (Bubble Up)</h3>
-            <div class="step">
-              <div class="step-num">1</div>
-              <span
-                >New patient is appended to the end of the internal array</span
-              >
-            </div>
-            <div class="step">
-              <div class="step-num">2</div>
-              <span>Compare with parent at <code>floor((i−1)/2)</code></span>
-            </div>
-            <div class="step">
-              <div class="step-num">3</div>
-              <span>If more critical (lower P-number), swap with parent</span>
-            </div>
-            <div class="step">
-              <div class="step-num">4</div>
-              <span>Repeat upward until heap property is restored</span>
-            </div>
-            <div class="step">
-              <div class="step-num">5</div>
-              <span>Most critical patient always sits at index 0 (root)</span>
-            </div>
-          </div>
-
-          <div class="how-card">
-            <h3>Min-Heap — Treat (Sink Down)</h3>
-            <div class="step">
-              <div class="step-num">1</div>
-              <span>Remove the root (index 0) — that is the next patient</span>
-            </div>
-            <div class="step">
-              <div class="step-num">2</div>
-              <span>Move last array element to index 0</span>
-            </div>
-            <div class="step">
-              <div class="step-num">3</div>
-              <span
-                >Compare with children: left <code>2i+1</code>, right
-                <code>2i+2</code></span
-              >
-            </div>
-            <div class="step">
-              <div class="step-num">4</div>
-              <span
-                >Swap with the more critical child if needed (sink-down)</span
-              >
-            </div>
-            <div class="step">
-              <div class="step-num">5</div>
-              <span>Repeat until the heap order is fully restored</span>
-            </div>
-          </div>
-
-          <div class="how-card">
-            <h3>Sorted Array — How It Works</h3>
-            <div class="step">
-              <div class="step-num">1</div>
-              <span>New patient is appended to the end of the array</span>
-            </div>
-            <div class="step">
-              <div class="step-num">2</div>
-              <span>Entire array is re-sorted by priority (P1 first)</span>
-            </div>
-            <div class="step">
-              <div class="step-num">3</div>
-              <span>Ties in priority are broken by arrival order (FIFO)</span>
-            </div>
-            <div class="step">
-              <div class="step-num">4</div>
-              <span
-                >To treat: remove first element — always the most critical</span
-              >
-            </div>
-          </div>
-
-          <div class="how-card">
-            <h3>Performance Comparison</h3>
-            <table class="compare-table">
-              <thead>
-                <tr>
-                  <th>Operation</th>
-                  <th>Min-Heap</th>
-                  <th>Sorted Array</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Insert patient</td>
-                  <td class="val-good"><code>O(log n)</code></td>
-                  <td><code>O(n)</code></td>
-                </tr>
-                <tr>
-                  <td>Treat next</td>
-                  <td><code>O(log n)</code></td>
-                  <td class="val-good"><code>O(1)</code></td>
-                </tr>
-                <tr>
-                  <td>Best for</td>
-                  <td>High patient throughput</td>
-                  <td>Frequent full-list reads</td>
-                </tr>
-              </tbody>
-            </table>
+        <!-- Treated history -->
+        <div class="section-header" style="margin-top: 32px">
+          <span class="section-title">Treatment History</span>
+          <span class="treated-count" id="treated-count">0</span>
+        </div>
+        <div id="treated-list">
+          <div class="empty-state" style="padding: 20px">
+            <p>No treatment history yet</p>
           </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </div>
 
     <!-- Toast -->
     <div id="toast">
@@ -994,23 +1225,18 @@
       <div class="toast-sub" id="toast-sub"></div>
     </div>
 
+    <!-- ═══════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════ -->
     <script>
-      /* ─── Clock ─── */
-      function tick() {
-        const now = new Date();
-        document.getElementById("clock").textContent = now.toLocaleTimeString(
-          "en-IN",
-          { hour12: false },
-        );
-      }
-      tick();
-      setInterval(tick, 1000);
+      "use strict";
 
-      /* ─── Data ─── */
-      let hData = [],
-        pData = [],
-        hId = 0,
-        pId = 0;
+      /* ─── Shared state ─── */
+      let hData = []; // Min-Heap array (patients waiting), stores encrypted data
+      let treatedData = []; // Patients dispatched for treatment (encrypted), awaiting doctor decrypt
+      let currentlyTreating = null; // The single patient being treated right now
+      let hId = 0;
+
       const priLabel = [
         "",
         "Critical",
@@ -1020,185 +1246,346 @@
         "Stable",
       ];
 
-      /* ─── Tab nav ─── */
-      function show(tab) {
-        ["heap", "pq", "how"].forEach((id) => {
-          document.getElementById(id).classList.toggle("active", id === tab);
+      /* ─── RSA Key Pair (generated once on load) ─── */
+      // keyPairPromise resolves to { publicKey, privateKey }
+      // publicKey  → used by receptionist to ENCRYPT on admit
+      // privateKey → used by doctor to DECRYPT when viewing records
+      const keyPairPromise = window.crypto.subtle.generateKey(
+        {
+          name: "RSA-OAEP",
+          modulusLength: 2048, // 2048-bit RSA key
+          publicExponent: new Uint8Array([1, 0, 1]), // 65537 — standard RSA exponent
+          hash: "SHA-256", // hash used internally by OAEP padding
+        },
+        false, // not extractable — keys never exposed to JS as raw bytes
+        ["encrypt", "decrypt"], // publicKey → encrypt, privateKey → decrypt
+      );
+
+      // Hide loading overlay once key pair is ready, then show role selector
+      keyPairPromise
+        .then(() => {
+          document.getElementById("loading-overlay").style.display = "none";
+          document.getElementById("role-selector").style.display = "flex";
+        })
+        .catch((err) => {
+          document
+            .getElementById("loading-overlay")
+            .querySelector("p").textContent =
+            "Key generation failed: " + err.message;
         });
-        document.querySelectorAll(".nav-tab").forEach((el, i) => {
-          el.classList.toggle("active", ["heap", "pq", "how"][i] === tab);
-        });
+
+      /* ─── RSA Encrypt (uses PUBLIC key) ─── */
+      // Takes a plain string, returns a base64 string of the RSA ciphertext.
+      // RSA-OAEP includes randomness internally — no IV needed unlike AES-GCM.
+      async function encryptField(plainText) {
+        const { publicKey } = await keyPairPromise;
+        const encoded = new TextEncoder().encode(plainText); // string → Uint8Array bytes
+        const cipherBytes = await window.crypto.subtle.encrypt(
+          { name: "RSA-OAEP" },
+          publicKey,
+          encoded,
+        );
+        // Convert raw bytes → base64 string so it can be stored as a JS string
+        return btoa(String.fromCharCode(...new Uint8Array(cipherBytes)));
       }
 
-      /* ─── Stats bar ─── */
-      function updateStats() {
-        const all = [...hData, ...pData];
-        for (let i = 1; i <= 5; i++) {
-          document.getElementById("stat-" + i).textContent = all.filter(
-            (p) => p.pri === i,
-          ).length;
-        }
+      /* ─── RSA Decrypt (uses PRIVATE key) ─── */
+      // Takes the base64 string from encryptField, returns the original plain string.
+      async function decryptField(base64Text) {
+        const { privateKey } = await keyPairPromise;
+        // Reverse base64 → raw bytes
+        const cipherBytes = Uint8Array.from(atob(base64Text), (c) =>
+          c.charCodeAt(0),
+        );
+        const decryptedBytes = await window.crypto.subtle.decrypt(
+          { name: "RSA-OAEP" },
+          privateKey,
+          cipherBytes,
+        );
+        return new TextDecoder().decode(decryptedBytes); // bytes → string
       }
 
-      /* ─── Time formatting ─── */
+      /* ─── Clock (updates all visible clocks) ─── */
+      function tick() {
+        const t = new Date().toLocaleTimeString("en-IN", { hour12: false });
+        ["clock-rec", "clock-que", "clock-doc"].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = t;
+        });
+      }
+      tick();
+      setInterval(tick, 1000);
+
+      /* ─── Time formatter ─── */
       function fmtTime(ms) {
-        const d = new Date(ms);
-        return d.toLocaleTimeString("en-IN", {
+        return new Date(ms).toLocaleTimeString("en-IN", {
           hour: "2-digit",
           minute: "2-digit",
           hour12: true,
         });
       }
 
-      /* ─── Patient card HTML ─── */
-      function cardHTML(p, isFirst) {
-        return `<div class="patient-card ${isFirst ? "first-in-queue" : ""}">
-      <div class="priority-badge p${p.pri}">${p.pri}</div>
-      <div class="patient-info">
-        <div class="patient-name">${p.name}</div>
-        <div class="patient-cond">${p.cond}</div>
-      </div>
-      <div class="patient-time">${fmtTime(p.ts)}</div>
-      <div class="priority-tag tag-${p.pri}">${priLabel[p.pri]}</div>
-      ${isFirst ? '<div class="next-badge">NEXT</div>' : ""}
-    </div>`;
+      /* ─── Page navigation ─── */
+      function openPage(role) {
+        document.getElementById("role-selector").style.display = "none";
+        document
+          .querySelectorAll(".page")
+          .forEach((p) => p.classList.remove("active"));
+        document.getElementById("page-" + role).classList.add("active");
+        // Refresh doctor page when opened (decrypt all treated records)
+        if (role === "doctor") refreshDoctorPage();
       }
 
-      function emptyHTML() {
-        return `<div class="empty-state">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-      </svg>
-      <p>No patients in the queue</p>
-    </div>`;
+      function goHome() {
+        document
+          .querySelectorAll(".page")
+          .forEach((p) => p.classList.remove("active"));
+        document.getElementById("role-selector").style.display = "flex";
       }
 
-      function render(listId, data, countId, treatId) {
-        const sorted = [...data].sort((a, b) => a.pri - b.pri || a.id - b.id);
-        document.getElementById(listId).innerHTML = sorted.length
-          ? sorted.map((p, i) => cardHTML(p, i === 0)).join("")
-          : emptyHTML();
-        document.getElementById(countId).textContent = data.length;
-        document.getElementById(treatId).disabled = data.length === 0;
-        updateStats();
-      }
+      /* ─── Min-Heap operations ─── */
 
-      /* ─── Toast ─── */
-      let toastTimer;
-      function showToast(name, sub, warn = false) {
-        const t = document.getElementById("toast");
-        document.getElementById("toast-name").textContent = name;
-        document.getElementById("toast-sub").textContent = sub;
-        t.className = warn ? "warn show" : "show";
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => {
-          t.className = warn ? "warn" : "";
-        }, 3200);
-      }
-
-      /* ─── MIN-HEAP logic ─── */
+      // bubbleUp: after pushing to end, move the new item UP until heap order is restored.
+      // Heap rule: parent.pri <= child.pri  (lower number = more critical = sits higher)
       function bubbleUp(arr, i) {
         while (i > 0) {
-          const parent = Math.floor((i - 1) / 2);
-          if (arr[parent].pri <= arr[i].pri) break;
-          [arr[parent], arr[i]] = [arr[i], arr[parent]];
-          i = parent;
+          const parent = Math.floor((i - 1) / 2); // parent index formula
+          if (arr[parent].pri <= arr[i].pri) break; // parent is already more/equally critical → stop
+          [arr[parent], arr[i]] = [arr[i], arr[parent]]; // swap
+          i = parent; // move up and repeat
         }
       }
 
+      // sinkDown: after placing last element at root, push it DOWN until heap order is restored.
       function sinkDown(arr, i) {
         const n = arr.length;
         while (true) {
-          let s = i,
-            l = 2 * i + 1,
-            r = 2 * i + 2;
-          if (l < n && arr[l].pri < arr[s].pri) s = l;
-          if (r < n && arr[r].pri < arr[s].pri) s = r;
-          if (s === i) break;
-          [arr[s], arr[i]] = [arr[i], arr[s]];
+          let s = i;
+          const l = 2 * i + 1; // left child index
+          const r = 2 * i + 2; // right child index
+          if (l < n && arr[l].pri < arr[s].pri) s = l; // left child more critical?
+          if (r < n && arr[r].pri < arr[s].pri) s = r; // right child even more critical?
+          if (s === i) break; // neither child is more critical → done
+          [arr[s], arr[i]] = [arr[i], arr[s]]; // swap with most critical child
           i = s;
         }
       }
 
-      function hAdd() {
-        const name =
-          document.getElementById("h-name").value.trim() ||
-          "Patient " + (hId + 1);
-        const cond =
-          document.getElementById("h-cond").value.trim() || "Not specified";
-        const pri = +document.getElementById("h-pri").value;
-        const p = { id: ++hId, name, cond, pri, ts: Date.now() };
-        hData.push(p);
-        bubbleUp(hData, hData.length - 1);
-        document.getElementById("h-name").value = "";
-        document.getElementById("h-cond").value = "";
-        render("h-queue", hData, "h-count", "h-treat");
-        showToast(
-          name + " admitted",
-          "Triage level: " + priLabel[pri],
-          pri === 1,
-        );
+      /* ─── Stats updater (shared across all pages) ─── */
+      function updateStats() {
+        for (let i = 1; i <= 5; i++) {
+          const count = hData.filter((p) => p.pri === i).length;
+          ["rec", "que"].forEach((prefix) => {
+            const el = document.getElementById(prefix + "-stat-" + i);
+            if (el) el.textContent = count;
+          });
+        }
       }
 
-      function hTreat() {
+      /* ─── Toast ─── */
+      let toastTimer;
+      function showToast(name, sub, type = "normal") {
+        const t = document.getElementById("toast");
+        document.getElementById("toast-name").textContent = name;
+        document.getElementById("toast-sub").textContent = sub;
+        t.className =
+          { warn: "warn show", doc: "doc show", normal: "show" }[type] ||
+          "show";
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          t.className = type === "warn" ? "warn" : type === "doc" ? "doc" : "";
+        }, 3200);
+      }
+
+      /* ─── Masked card (for receptionist + queue manager views) ─── */
+      // Shows truncated base64 ciphertext — deliberately unreadable to these roles
+      function encryptedCardHTML(p, isFirst) {
+        const maskedName = p.encName
+          ? "🔒 " + p.encName.slice(0, 18) + "…"
+          : "🔒 ???";
+        const maskedCond = p.encCond ? p.encCond.slice(0, 18) + "…" : "???";
+        return `<div class="patient-card ${isFirst ? "first-in-queue" : ""}">
+    <div class="priority-badge p${p.pri}">T-${p.id}</div>
+    <div class="patient-info">
+      <div class="patient-name">${maskedName}</div>
+      <div class="patient-cond">${maskedCond}</div>
+    </div>
+    <div class="patient-time">${fmtTime(p.ts)}</div>
+    <div class="priority-tag tag-${p.pri}">${priLabel[p.pri]}</div>
+    ${isFirst ? '<div class="next-badge">NEXT</div>' : ""}
+  </div>`;
+      }
+
+      /* ─── Empty state HTML ─── */
+      function emptyHTML(msg = "No patients in the queue") {
+        return `<div class="empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+    <p>${msg}</p>
+  </div>`;
+      }
+
+      /* ─── Render queue (receptionist + queue manager) ─── */
+      // Sorts a display copy by priority then ID — does NOT mutate the heap
+      function renderQueue() {
+        const sorted = [...hData].sort((a, b) => a.pri - b.pri || a.id - b.id);
+
+        // Receptionist view (read-only)
+        const recQ = document.getElementById("rec-queue");
+        if (recQ) {
+          recQ.innerHTML = sorted.length
+            ? sorted.map((p, i) => encryptedCardHTML(p, i === 0)).join("")
+            : emptyHTML("No patients admitted yet");
+          document.getElementById("rec-count").textContent = hData.length;
+        }
+
+        // Queue manager view (with treat button)
+        const queQ = document.getElementById("que-queue");
+        if (queQ) {
+          queQ.innerHTML = sorted.length
+            ? sorted.map((p, i) => encryptedCardHTML(p, i === 0)).join("")
+            : emptyHTML();
+          document.getElementById("que-count").textContent = hData.length;
+          document.getElementById("que-treat").disabled = hData.length === 0;
+        }
+
+        updateStats();
+      }
+
+      /* ─── ADMIT PATIENT (Receptionist) ─── */
+      // Encrypts name + condition with RSA PUBLIC key, then pushes to heap
+      async function admitPatient() {
+        const name =
+          document.getElementById("r-name").value.trim() ||
+          "Patient " + (hId + 1);
+        const cond =
+          document.getElementById("r-cond").value.trim() || "Not specified";
+        const pri = +document.getElementById("r-pri").value;
+
+        // Encrypt both PII fields — plaintext is never stored in hData
+        const encName = await encryptField(name);
+        const encCond = await encryptField(cond);
+
+        const p = { id: ++hId, encName, encCond, pri, ts: Date.now() };
+
+        hData.push(p);
+        bubbleUp(hData, hData.length - 1); // restore heap property
+
+        // Clear form
+        document.getElementById("r-name").value = "";
+        document.getElementById("r-cond").value = "";
+
+        renderQueue();
+        showToast(
+          name + " admitted",
+          "Triage: " + priLabel[pri],
+          pri === 1 ? "warn" : "normal",
+        );
+        // Note: `name` here is the LOCAL variable — it was never written to hData
+      }
+
+      /* ─── TREAT NEXT PATIENT (Queue Manager) ─── */
+      // Removes the heap root (most critical), moves it to treatedData
+      // No decryption happens here — the queue manager cannot see PII
+      async function treatNext() {
         if (!hData.length) return;
+
+        // Standard heap removal: save root, put last element at root, sink down
         const treated = hData[0];
         const last = hData.pop();
         if (hData.length) {
           hData[0] = last;
           sinkDown(hData, 0);
         }
-        render("h-queue", hData, "h-count", "h-treat");
+
+        // Record treatment time and move to treated list (still encrypted)
+        const record = { ...treated, treatedAt: Date.now() };
+        currentlyTreating = record;
+        treatedData.push(record);
+
+        renderQueue();
+        // Toast shows encrypted blob — queue manager only knows priority, not identity
         showToast(
-          treated.name + " is being treated",
-          priLabel[treated.pri] + " patient cleared",
+          "Patient dispatched for treatment",
+          priLabel[treated.pri] + " — identity encrypted 🔒",
+          "normal",
         );
       }
 
-      /* ─── SORTED ARRAY logic ─── */
-      function pAdd() {
-        const name =
-          document.getElementById("p-name").value.trim() ||
-          "Patient " + (pId + 1);
-        const cond =
-          document.getElementById("p-cond").value.trim() || "Not specified";
-        const pri = +document.getElementById("p-pri").value;
-        pData.push({ id: ++pId, name, cond, pri, ts: Date.now() });
-        pData.sort((a, b) => a.pri - b.pri || a.id - b.id);
-        document.getElementById("p-name").value = "";
-        document.getElementById("p-cond").value = "";
-        render("p-queue", pData, "p-count", "p-treat");
-        showToast(
-          name + " admitted",
-          "Triage level: " + priLabel[pri],
-          pri === 1,
+      /* ─── REFRESH DOCTOR PAGE ─── */
+      // Doctor page decrypts every record in treatedData using the PRIVATE key
+      // This is the ONLY place in the entire app where decryption happens
+      async function refreshDoctorPage() {
+        // Currently treating
+        const treatingList = document.getElementById("treating-list");
+        const treatingCount = document.getElementById("treating-count");
+
+        if (currentlyTreating) {
+          treatingCount.textContent = "1";
+          const name = await decryptField(currentlyTreating.encName);
+          const cond = await decryptField(currentlyTreating.encCond);
+          treatingList.innerHTML = treatedCardHTML(
+            currentlyTreating,
+            name,
+            cond,
+            true,
+          );
+        } else {
+          treatingCount.textContent = "0";
+          treatingList.innerHTML = emptyHTML(
+            "No patient being treated right now",
+          );
+        }
+
+        // Full treatment history
+        const treatedList = document.getElementById("treated-list");
+        const treatedCount = document.getElementById("treated-count");
+        treatedCount.textContent = treatedData.length;
+
+        if (treatedData.length === 0) {
+          treatedList.innerHTML = emptyHTML("No treatment history yet");
+          return;
+        }
+
+        // Decrypt each record — most recent first
+        const reversed = [...treatedData].reverse();
+        const cards = await Promise.all(
+          reversed.map(async (p) => {
+            const name = await decryptField(p.encName);
+            const cond = await decryptField(p.encCond);
+            return treatedCardHTML(p, name, cond, false);
+          }),
         );
+        treatedList.innerHTML = cards.join("");
       }
 
-      function pTreat() {
-        if (!pData.length) return;
-        const treated = pData.shift();
-        render("p-queue", pData, "p-count", "p-treat");
-        showToast(
-          treated.name + " is being treated",
-          priLabel[treated.pri] + " patient cleared",
-        );
+      /* ─── Treated card HTML (doctor view — fully decrypted) ─── */
+      function treatedCardHTML(p, plainName, plainCond, isCurrent) {
+        return `<div class="treated-card">
+    <div class="priority-badge p${p.pri}">${p.id}</div>
+    <div class="treated-info">
+      <div class="patient-name">${plainName}</div>
+      <div class="patient-cond">${plainCond}</div>
+    </div>
+    <div class="treated-time-col">
+      <div class="treated-at">${isCurrent ? "Treating since" : "Treated at"}</div>
+      <div class="treated-time-val">${fmtTime(p.treatedAt)}</div>
+    </div>
+    <div class="priority-tag tag-${p.pri}">${priLabel[p.pri]}</div>
+    <span class="dec-badge">🔓 Decrypted</span>
+  </div>`;
       }
 
-      /* ─── Enter key support ─── */
-      ["h-name", "h-cond", "h-pri"].forEach((id) =>
+      /* ─── Enter key support (receptionist form) ─── */
+      ["r-name", "r-cond", "r-pri"].forEach((id) => {
         document.getElementById(id).addEventListener("keydown", (e) => {
-          if (e.key === "Enter") hAdd();
-        }),
-      );
-      ["p-name", "p-cond", "p-pri"].forEach((id) =>
-        document.getElementById(id).addEventListener("keydown", (e) => {
-          if (e.key === "Enter") pAdd();
-        }),
-      );
+          if (e.key === "Enter") admitPatient();
+        });
+      });
     </script>
   </body>
 </html>
